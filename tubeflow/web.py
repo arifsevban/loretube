@@ -189,6 +189,13 @@ def create_app(state: AppState) -> Flask:
             items.append(item)
         return jsonify({"ok": True, "items": items})
 
+    @app.delete("/api/history")
+    def api_clear_history() -> tuple[Response, int] | Response:
+        result = state.history.clear(state.cfg.download_dir)
+        if not result["saved"]:
+            return _json_error("İndirme geçmişi diske kaydedilemedi; hiçbir indirme dosyası silinmedi.", 500)
+        return jsonify({"ok": True, **result})
+
     @app.get("/api/history/<job_id>/file")
     def api_history_file(job_id: str) -> tuple[Response, int] | Response:
         record = state.history.get(job_id)

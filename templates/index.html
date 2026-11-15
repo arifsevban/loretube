@@ -185,7 +185,10 @@
         <section id="history-card" class="card history" aria-labelledby="history-title">
           <div class="history__head">
             <h2 id="history-title" class="section-title">Geçmiş</h2>
-            <span id="history-count" class="history__count"></span>
+            <div class="history__tools">
+              <span id="history-count" class="history__count" role="status" aria-live="polite"></span>
+              <button id="history-clear" class="btn btn--quiet btn--small history__clear" type="button" title="Geçmiş kayıtlarıyla birlikte indirilen dosyaları da siler" hidden>Geçmişi ve indirmeleri sil</button>
+            </div>
           </div>
           <div id="history-body" aria-live="polite"></div>
         </section>

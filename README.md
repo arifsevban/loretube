@@ -13,6 +13,7 @@ TubeFlow, herkese açık YouTube videolarını inceleyip indirme izniniz olan i�
 | Kalite seçimi | Videonun mevcut çözünürlüklerini ve ses akışlarının bit hızlarını gösterir; seçimler kaynakta sunulan formatlarla sınırlıdır. |
 | İndirme takibi | Aşama, yüzde, indirilen/toplam boyut, hız ve tahmini kalan süreyi gösterir. |
 | Yerel geçmiş | Son indirmeleri küçük resim, tür, kalite, dosya boyutu ve tarihle listeler; dosya hâlâ mevcutsa yeniden indirme olanağı verir. |
+| Geçmişi temizleme | Onay verdikten sonra geçmiş kayıtlarını ve bu kayıtlarla ilişkili indirilmiş dosyaları birlikte siler. |
 | Telefona aktarım | Hazır dosya için aynı Wi-Fi ağındaki telefondan açılabilen, süreli QR bağlantısı üretir. |
 | Yerel çalışma | Ana arayüz yalnızca bu bilgisayardan erişilebilir. Medya dosyaları ve indirme geçmişi yerel diskte tutulur. |
 
@@ -50,7 +51,7 @@ Başarısız indirme denemelerinin geçici dosyaları silinir. Tamamlanmış ind
 
 ## Windows'ta başlatma
 
-1. Python 3.10 veya üzeri sürümü kurun; Python başlatıcısının (`py`) kullanılabilir olduğundan emin olun.
+1. Python 3.10 veya üzeri sürümü kurun. `py` başlatıcısı önerilir; yoksa `python` veya `python3` komutunun PATH üzerinden erişilebilir olması yeterlidir.
 2. `run.bat` dosyasına çift tıklayın. Masaüstünde TubeFlow için YouTube tarzı özel simgeli `TubeFlow - YouTube Baslat` kısayolunu oluşturur veya günceller. Gerekirse `.venv` sanal ortamını oluşturur, `requirements.txt` içindeki paketleri kurar ve uygulamayı başlatır. Sonraki açılışlarda masaüstü kısayolunu kullanabilirsiniz.
 3. Tarayıcı kendiliğinden açılmazsa `http://127.0.0.1:5000` adresine gidin. Uygulamayı durdurmak için terminali kapatın veya Ctrl+C tuşlarına basın.
 

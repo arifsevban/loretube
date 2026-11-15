@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 import json
+import re
+import shutil
 import threading
 import time
 from pathlib import Path
@@ -26,17 +28,19 @@ class HistoryStore:
         if isinstance(data, list):
             self._items = [item for item in data if isinstance(item, dict)][: self._max_items]
 
-    def _save_locked(self) -> None:
+    def _save_locked(self) -> bool:
         payload = json.dumps(self._items, ensure_ascii=False, indent=2)
         temp = self._path.with_suffix(".tmp")
         try:
             temp.write_text(payload, encoding="utf-8")
             temp.replace(self._path)
+            return True
         except OSError:
             try:
                 self._path.write_text(payload, encoding="utf-8")
+                return True
             except OSError:
-                pass
+                return False
 
     def add(self, record: dict) -> None:
         with self._lock:
@@ -55,6 +59,47 @@ class HistoryStore:
                 if item.get("id") == job_id:
                     return dict(item)
         return None
+
+    def clear(self, download_dir: Path) -> dict[str, int | bool]:
+        base = Path(download_dir).resolve()
+        with self._lock:
+            previous = self._items
+            self._items = []
+            if not self._save_locked():
+                self._items = previous
+                return {
+                    "saved": False,
+                    "removed_records": 0,
+                    "deleted_downloads": 0,
+                    "failed_downloads": 0,
+                }
+
+        deleted_downloads = 0
+        failed_downloads = 0
+        for item in previous:
+            job_id = item.get("id")
+            if not isinstance(job_id, str) or not re.fullmatch(r"[a-f0-9]{32}", job_id):
+                continue
+            candidate = base / job_id
+            if candidate.is_symlink():
+                continue
+            folder = candidate.resolve()
+            if folder.parent != base or not folder.is_dir():
+                continue
+            try:
+                shutil.rmtree(folder)
+                deleted_downloads += 1
+            except FileNotFoundError:
+                continue
+            except OSError:
+                failed_downloads += 1
+
+        return {
+            "saved": True,
+            "removed_records": len(previous),
+            "deleted_downloads": deleted_downloads,
+            "failed_downloads": failed_downloads,
+        }
 
     def remove_missing(self, download_dir: Path) -> None:
         base = Path(download_dir).resolve()

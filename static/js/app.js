@@ -41,6 +41,7 @@
     jobRetry: $("job-retry"),
     historyBody: $("history-body"),
     historyCount: $("history-count"),
+    historyClear: $("history-clear"),
     qrIdle: $("qr-idle"),
     qrActive: $("qr-active"),
     qrActiveStage: $("qr-active-stage"),
@@ -744,6 +745,7 @@
 
   function renderHistorySkeleton() {
     els.historyCount.textContent = "";
+    els.historyClear.hidden = true;
     const wrap = document.createElement("div");
     wrap.className = "skeleton";
     wrap.setAttribute("aria-hidden", "true");
@@ -762,6 +764,7 @@
 
   function renderHistoryEmpty() {
     els.historyCount.textContent = "";
+    els.historyClear.hidden = true;
     const block = createStateBlock(
       "Henüz indirme yok",
       "İlk indirmeniz tamamlandığında burada küçük resmi, formatı ve tekrar indirme bağlantısıyla listelenir.",
@@ -775,6 +778,7 @@
 
   function renderHistoryError(message) {
     els.historyCount.textContent = "";
+    els.historyClear.hidden = true;
     const block = createStateBlock(
       "Geçmiş yüklenemedi",
       message || "Sunucuya ulaşılamadı. Uygulamanın açık olduğunu kontrol edip yeniden deneyin.",
@@ -814,6 +818,7 @@
 
   function renderHistoryList(items) {
     els.historyCount.textContent = `${items.length} kayıt`;
+    els.historyClear.hidden = items.length === 0;
     const list = document.createElement("ul");
     list.className = "history__list";
     items.forEach((item) => {
@@ -871,6 +876,37 @@
     }
   }
 
+  async function clearHistory() {
+    const confirmed = window.confirm(
+      "Geçmiş kayıtları ve bu kayıtlarla ilişkili indirilmiş dosyalar kalıcı olarak silinsin mi?"
+    );
+    if (!confirmed) {
+      return;
+    }
+
+    els.historyClear.disabled = true;
+    els.historyClear.textContent = "Siliniyor…";
+    try {
+      const response = await fetch("/api/history", { method: "DELETE" });
+      const data = await response.json().catch(() => ({ ok: false, error: "Sunucu yanıtı okunamadı." }));
+      if (!response.ok || !data.ok) {
+        throw new Error(data.error || "Geçmiş silinemedi.");
+      }
+
+      await loadHistory();
+      if (data.failed_downloads > 0) {
+        els.historyCount.textContent = `${data.removed_records} kayıt silindi; ${data.failed_downloads} dosya silinemedi`;
+      } else {
+        els.historyCount.textContent = `${data.removed_records} kayıt ve ${data.deleted_downloads} indirme silindi`;
+      }
+    } catch (error) {
+      els.historyCount.textContent = error.message || "Geçmiş silinemedi.";
+    } finally {
+      els.historyClear.disabled = false;
+      els.historyClear.textContent = "Geçmişi ve indirmeleri sil";
+    }
+  }
+
   function onTabKeydown(event) {
     const tabs = Array.from(els.formatTabs.querySelectorAll(".tab"));
     const currentIndex = tabs.indexOf(document.activeElement);
@@ -906,6 +942,7 @@
   els.pasteBtn.addEventListener("click", pasteFromClipboard);
   els.downloadBtn.addEventListener("click", () => startDownload());
   els.qrCopy.addEventListener("click", copyQrLink);
+  els.historyClear.addEventListener("click", clearHistory);
   els.jobRetry.addEventListener("click", () => {
     if (state.job) {
       startDownload({
